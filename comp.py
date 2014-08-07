@@ -169,14 +169,17 @@ class CALIFACompare(object):
 
     def radialProp(self, attrib, weiProp = None):
         return self.radial(self.prop(attrib), weiProp)
-
-    def radialPropEL(self, attrib, weiProp = None, extensive = False):
+    
+    def propELYX(self, attrib, extensive):
         p__z = self.propEL(attrib)
         p__yx = {
             'px1' : self.px1.zoneToYX(p__z['px1'], extensive = extensive),
             'vxx' : self.vxx.zoneToYX(p__z['vxx'], extensive = extensive),
         }
-        return self.radial(p__yx, weiProp)
+        return p__yx
+
+    def radialPropEL(self, attrib, weiProp = None, extensive = False):
+        return self.radial(self.propELYX(attrib, extensive), weiProp)
 
 #EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
 #EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
@@ -237,7 +240,7 @@ if __name__ == '__main__':
         NEL = len(propEL)
         
         f, axArr = plt.subplots(NRows, NCols)
-        f.set_size_inches(6 * NRows , 5 * NCols)
+        f.set_size_inches(6 * NCols , 5 * NRows)
         
         for ax in f.axes:
             ax.set_axis_off()
@@ -277,8 +280,64 @@ if __name__ == '__main__':
                     l += 1
                 else:
                     continue
+                
         f.savefig('%s.png' % K.px1.califaID)
         
+        for i in range(0, NStarlight + NEL):
+            NCols = 4 
+    
+            f, axArr = plt.subplots(1, NCols)
+            f.set_size_inches(6 * NCols, 5)
+            
+            for ax in f.axes:
+                ax.set_axis_off()
+    
+            ax = axArr[0]
+            ax.set_axis_on()
+            galaxyImgFile = imgDir + K.px1.califaID + '.jpg'
+            galimg = plt.imread(galaxyImgFile)[::-1,:,:]
+            plt.setp(ax.get_xticklabels(), visible = False)
+            plt.setp(ax.get_yticklabels(), visible = False)
+            ax.imshow(galimg, origin = 'lower')
+            pa_px1, ba_px1 = K.px1.getEllipseParams()
+            DrawHLRCircleInSDSSImage(ax, K.px1.HLR_pix, pa_px1, ba_px1)
+            ax.set_xticklabels([])
+            ax.set_yticklabels([])
+
+            if i < NStarlight:
+                p = propStarlight[i]
+                prop__yx = K.prop(p['prop'])
+                prop__Vr = K.radialProp(p['prop'], weiProp = p['weiProp'])                
+            else:
+                k = NEL - i
+                p = propEL[k]
+                prop__yx = K.propELYX(p['prop'], extensive = p['extensive'])
+                prop__Vr = K.radialPropEL(p['prop'], weiProp = p['weiProp'], extensive = p['extensive'])
+
+            ax = axArr[1]
+            ax.set_axis_on()
+            im = ax.imshow(prop__yx['px1'], origin = 'lower')
+            pa_px1, ba_px1 = K.px1.getEllipseParams()
+            DrawHLRCircleInSDSSImage(ax, K.px1.HLR_pix, pa_px1, ba_px1)
+            ax.set_title('%s px1' % p['title'])
+            f.colorbar(ax = ax, mappable = im)
+
+            ax = axArr[2]
+            ax.set_axis_on()
+            im = ax.imshow(prop__yx['vxx'], origin = 'lower')
+            pa_vxx, ba_vxx = K.vxx.getEllipseParams()
+            DrawHLRCircleInSDSSImage(ax, K.vxx.HLR_pix, pa_vxx, ba_vxx)
+            ax.set_title('%s v20' % p['title'])
+            f.colorbar(ax = ax, mappable = im)
+
+            ax = axArr[3]
+            ax.set_axis_on()
+            ax.set_title('%s v20' % p['title'])
+            plotRadialPropAxis(ax, K.RbinCenter__r, prop__Vr, 'v20')
+
+            f.tight_layout()
+            f.savefig('%s-%s.png' % (K.px1.califaID, p['prop']))
+            
         #EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
         # K.px1.EL.close()
         # K.px1.close()
