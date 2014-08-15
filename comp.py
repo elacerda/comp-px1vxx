@@ -27,26 +27,37 @@ qCCM = {
 }
 
 propStarlight = [
-    dict(prop = 'at_flux__yx', title = r'$\langle \log\ t_\star \rangle_L (R)$', weiProp = 'LobnSD__yx'),
-    dict(prop = 'at_mass__yx', title = r'$\langle \log\ t_\star \rangle_M (R)$', weiProp = 'McorSD__yx'),
-    dict(prop = 'alogZ_flux__yx', title = r'$\langle \log\ Z_\star \rangle_L (R)$', weiProp = 'LobnSD__yx'),
-    dict(prop = 'alogZ_mass__yx', title = r'$\langle \log\ Z_\star \rangle_M (R)$', weiProp = 'McorSD__yx'),
-    dict(prop = 'v_d__yx', title = r'$\sigma_\star (R)$', weiProp = None),
-    dict(prop = 'LobnSD__yx', title = r'$\mathcal{L}_\star$', weiProp = None),
-    dict(prop = 'McorSD__yx', title = r'$\mu_\star$', weiProp = None),
+    dict(prop = 'at_flux__yx', title = r'$\langle \log\ t_\star \rangle_L$', 
+         weiProp = 'LobnSD__yx', log = False),
+    dict(prop = 'at_mass__yx', title = r'$\langle \log\ t_\star \rangle_M$', 
+         weiProp = 'McorSD__yx', log = False),
+    dict(prop = 'alogZ_flux__yx', title = r'$\langle \log\ Z_\star \rangle_L$', 
+         weiProp = 'LobnSD__yx', log = False),
+    dict(prop = 'alogZ_mass__yx', title = r'$\langle \log\ Z_\star \rangle_M$', 
+         weiProp = 'McorSD__yx', log = False),
+    dict(prop = 'v_d__yx', title = r'$\sigma_\star$', weiProp = None, log = False),
+    dict(prop = 'LobnSD__yx', title = r'$\log \mathcal{L}_\star$', weiProp = None, log = True),
+    dict(prop = 'McorSD__yx', title = r'$\mathcal{M}_\star$', weiProp = None, log = False),
 ]
 
 propEL = [
-    dict(prop = 'tau_V_neb__z', extensive = False, title = r'$\tau_V^{neb}$', weiProp = None),
-    dict(prop = 'logZ_neb__z', extensive = False, title = r'$\log\ Z_{neb}$', weiProp = None),
-    dict(prop = 'Ha_obs__z', extensive = True, title = r'$F_{H\alpha}^{obs}$', weiProp = None), 
-    dict(prop = 'Hb_obs__z', extensive = True, title = r'$F_{H\beta}^{obs}$', weiProp = None),
-    dict(prop = 'O3_obs__z', extensive = True, title = r'$F_{[OIII]}^{obs}$', weiProp = None),
-    dict(prop = 'N2_obs__z', extensive = True, title = r'$F_{[NII]}^{obs}$', weiProp = None),
+    dict(prop = 'tau_V_neb__z', extensive = False, title = r'$\tau_V^{neb}$', 
+         weiProp = None, log = False),
+    dict(prop = 'logZ_neb__z', extensive = False, title = r'$\log\ Z_{neb}$', 
+         weiProp = None, log = False),
+    dict(prop = 'Ha_obs__z', extensive = True, title = r'$\log F_{H\alpha}^{obs}$', 
+         weiProp = None, log = True), 
+    dict(prop = 'Hb_obs__z', extensive = True, title = r'$\log F_{H\beta}^{obs}$', 
+         weiProp = None, log = True),
+    dict(prop = 'O3_obs__z', extensive = True, title = r'$\log F_{[OIII]}^{obs}$', 
+         weiProp = None, log = True),
+    dict(prop = 'N2_obs__z', extensive = True, title = r'$\log F_{[NII]}^{obs}$', 
+         weiProp = None, log = True),
 ]
 
 NStarlight = len(propStarlight)
 NEL = len(propEL)
+Ntot = NStarlight + NEL
     
 #EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
 #EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
@@ -63,32 +74,37 @@ def parser_args(description):
                         help = 'PyCASSO px1 FITS file',
                         metavar = 'FILENAME',
                         type = str,
+                        required = True,
                         default = None)
     parser.add_argument('--vxxFitsFile', 
                         help = 'PyCASSO vXX FITS file',
                         metavar = 'FILENAME',
                         type = str,
+                        required = True,
                         default = None)
     parser.add_argument('--px1EmLinesFitsFile', '-e',
                         help = 'Emission Lines px1 FITS File',
                         metavar = 'FILENAME',
                         type = str,
+                        required = True,
                         default = None)
     parser.add_argument('--vxxEmLinesFitsFile',
                         help = 'Emission Lines vXX FITS File',
                         metavar = 'FILENAME',
                         type = str,
+                        required = True,
+                        default = None)
+    parser.add_argument('--galaxyImgFile', '-g',
+                        help = 'The image of the galaxy',
+                        metavar = 'FILE',
+                        type = str,
+                        required = True,
                         default = None)
     parser.add_argument('--vxx',
                         help = 'Voronoi XX',
                         metavar = 'vXX',
                         type = str,
                         default = default['vxx'])
-    parser.add_argument('--galaxyImgFile', '-g',
-                        help = 'The image of the galaxy',
-                        metavar = 'FILE',
-                        type = str,
-                        default = None)
     parser.add_argument('--outputImgSuffix', '-o',
                         help = 'Suffix of image file. Sometimes denote the image type. (Ex.: image.png)',
                         type = str,
@@ -111,33 +127,6 @@ def radialProfileWeighted(v__yx, w__yx, bins, rad_scale, func_radialProfile = No
 
     return v__r
 
-def Mpc_to_cm(dist):
-    # google: 1 Mpc = 3.08567758e24 cm
-    return dist * 3.08567758e24 
-
-def tauV_to_AV(tauV):
-    return tauV * np.log10(np.exp(1)) / 0.4
-
-def flux_to_LSol(flux, distance):
-    return 4. * np.pi * Mpc_to_cm(distance) ** 2.0 * flux / Lsun
-
-def calc_Lint_Ha(Lobs__Lz, err_Lobs__Lz, tauVNeb__z,lines):
-    i_Ha = lines.index('6563')
-    i_Hb = lines.index('4861')
-    
-    q = qCCM['6563'] / (qCCM['4861'] - qCCM['6563'])
-    
-    eHa = np.ma.exp(qCCM['6563'] * tauVNeb__z)
-    LobsHaHb = Lobs__Lz[i_Ha, :] / Lobs__Lz[i_Hb, :]
-
-    Lint_Ha__z = Lobs__Lz[i_Ha, :] * eHa
-    
-    a = err_Lobs__Lz[i_Ha, :]
-    b = q * LobsHaHb * err_Lobs__Lz[i_Hb, :]
-    err_Lint_Ha__z = eHa * np.sqrt(a ** 2.0 + b ** 2.0)
-    
-    return Lint_Ha__z, err_Lint_Ha__z
-
 def DrawHLRCircleInSDSSImage(ax, HLR_pix, pa, ba):
     from matplotlib.patches import Ellipse
     center , a , b_a , theta = np.array([ 256 , 256]) , HLR_pix * 512.0/75.0 , ba ,  pa*180/np.pi 
@@ -145,12 +134,6 @@ def DrawHLRCircleInSDSSImage(ax, HLR_pix, pa, ba):
     e2 = Ellipse(center, height=4*a*b_a, width=4*a, angle=theta, fill=False, color='white',lw=2,ls='dotted')
     ax.add_artist(e1)
     ax.add_artist(e2)
-
-def plotRadialPropAxis(ax, x, prop__Vr, vxx):
-    ax.plot(x, prop__Vr['px1'], 'b-', label = 'px1')
-    ax.plot(x, prop__Vr['vxx'], 'r-', label = '%s' % vxx)
-    leg = ax.legend()
-    leg.get_frame().set_alpha(0.)
 
 def plotNbyNprops(K, NRows, NCols, args):
     f, axArr = plt.subplots(NRows, NCols)
@@ -160,10 +143,10 @@ def plotNbyNprops(K, NRows, NCols, args):
         ax.set_axis_off()
 
     k = 0
-    l = 0
-    
+
     for i in range(0, NRows):
         for j in range(0, NCols):
+            # Plot the SDSS Image
             if i == 0 and j == 0:
                 ax = axArr[0, 0]
                 ax.set_axis_on()
@@ -175,24 +158,39 @@ def plotNbyNprops(K, NRows, NCols, args):
                 DrawHLRCircleInSDSSImage(ax, K.px1.HLR_pix, pa_px1, ba_px1)
                 ax.set_xticklabels([])
                 ax.set_yticklabels([])
-            elif k < NStarlight:
-                p = propStarlight[k]
-                ax = axArr[i, j] 
-                ax.set_axis_on()
-                ax.set_title(p['title'])
-                prop__Vr = K.radialProp(p['prop'], weiProp = p['weiProp'])
-                plotRadialPropAxis(ax, K.RbinCenter__r, prop__Vr, args.vxx)
-                k += 1
-            elif k >= NStarlight and l < NEL:
-                p = propEL[l]
-                ax = axArr[i, j] 
-                ax.set_axis_on()
-                ax.set_title(p['title'])
-                prop__Vr = K.radialPropEL(p['prop'], weiProp = p['weiProp'], extensive = p['extensive'])
-                plotRadialPropAxis(ax, K.RbinCenter__r, prop__Vr, args.vxx)
-                l += 1
             else:
-                continue
+                if k < NStarlight:
+                    p = propStarlight[k]
+                    prop__yx = K.prop(p['prop'])
+                elif k >= NStarlight and k < Ntot:
+                    l = k - NStarlight
+                    p = propEL[l]
+                    prop__z = K.propEL(p['prop'])
+                    prop__yx = K.zoneToYX(prop__z, extensive = p['extensive'])
+                elif k >= Ntot:
+                    continue
+
+                if p['log']:
+                    prop__yx = dict(px1 = np.log(prop__yx['px1']), vxx = np.log(prop__yx['vxx']))
+                    
+                ax = axArr[i, j]
+                ax.set_axis_on()
+
+                ax.set_title(p['title'])
+                HLR_pix = K.prop('HLR_pix')
+                prop__Vr = K.radialProfile(prop__yx, rad_scale = HLR_pix, weiProp = p['weiProp'])
+                ax.plot(K.RbinCenter__r, prop__Vr['px1'], 'b-', label = 'px1')
+                ax.plot(K.RbinCenter__r, prop__Vr['vxx'], 'r-', label = '%s' % args.vxx)
+                diff__r = prop__Vr['px1'] - prop__Vr['vxx']
+                textbox = dict(boxstyle = 'round', facecolor = 'wheat', alpha = 0.)
+                txt = 'mean: %.2f\n$\sigma$: %.2f' % (diff__r.mean(), diff__r.std()) 
+                ax.text(0.95, 0.95, txt, fontsize = 14, transform = ax.transAxes,
+                        va = 'top', ha = 'right', bbox = textbox)
+                if i == NRows - 1 and j == 0:
+                    ax.set_xlabel('HLR') 
+                #leg = ax.legend()
+                #leg.get_frame().set_alpha(0.)
+                k += 1
             
     f.savefig('%s.%s' % (K.px1.califaID, args.outputImgSuffix))
 
@@ -218,37 +216,58 @@ def plotImgRadProp(K, args):
         ax.set_xticklabels([])
         ax.set_yticklabels([])
 
+        # Choose the property dictionary.
         if i < NStarlight:
             p = propStarlight[i]
             prop__yx = K.prop(p['prop'])
-            prop__Vr = K.radialProp(p['prop'], weiProp = p['weiProp'])                
         else:
             k = NEL - i
             p = propEL[k]
-            prop__yx = K.propELYX(p['prop'], extensive = p['extensive'])
-            prop__Vr = K.radialPropEL(p['prop'], weiProp = p['weiProp'], extensive = p['extensive'])
+            prop__z = K.propEL(p['prop'])
+            prop__yx = K.zoneToYX(prop__z, extensive = p['extensive'])
+
+        if p['log']:
+            prop__yx = dict(px1 = np.log(prop__yx['px1']), vxx = np.log(prop__yx['vxx']))
+
+        # Set vmax and vmin to the lower interval    
+        vmax = prop__yx['px1'].max()
+        vmin = prop__yx['px1'].min()
+
+        if prop__yx['vxx'].max() < vmax:
+            vmax = prop__yx['vxx'].max()
+            
+        if vmin < prop__yx['vxx'].min():
+            vmin = prop__yx['vxx'].min()
 
         ax = axArr[1]
         ax.set_axis_on()
-        im = ax.imshow(prop__yx['px1'], origin = 'lower')
+        im = ax.imshow(prop__yx['px1'], origin = 'lower', vmax = vmax, vmin = vmin)
         pa_px1, ba_px1 = K.px1.getEllipseParams()
-        DrawHLRCircleInSDSSImage(ax, K.px1.HLR_pix, pa_px1, ba_px1)
         ax.set_title('%s px1' % p['title'])
         f.colorbar(ax = ax, mappable = im)
 
         ax = axArr[2]
         ax.set_axis_on()
-        im = ax.imshow(prop__yx['vxx'], origin = 'lower')
+        im = ax.imshow(prop__yx['vxx'], origin = 'lower', vmax = vmax, vmin = vmin)
         pa_vxx, ba_vxx = K.vxx.getEllipseParams()
-        DrawHLRCircleInSDSSImage(ax, K.vxx.HLR_pix, pa_vxx, ba_vxx)
-        ax.set_title('%s v20' % p['title'])
+        ax.set_title('%s %s' % (p['title'], args.vxx))
         f.colorbar(ax = ax, mappable = im)
-
+        
         ax = axArr[3]
         ax.set_axis_on()
-        ax.set_title('%s v20' % p['title'])
-        plotRadialPropAxis(ax, K.RbinCenter__r, prop__Vr, args.vxx)
-
+        ax.set_title('%s' % p['title'])
+        HLR_pix = K.prop('HLR_pix')
+        prop__Vr = K.radialProfile(prop__yx, rad_scale = HLR_pix, weiProp = p['weiProp'])                
+        ax.plot(K.RbinCenter__r, prop__Vr['px1'], 'b-', label = 'px1')
+        ax.plot(K.RbinCenter__r, prop__Vr['vxx'], 'r-', label = '%s' % args.vxx)
+        diff__r = prop__Vr['px1'] - prop__Vr['vxx']
+        textbox = dict(boxstyle = 'round', facecolor = 'wheat', alpha = 0.)
+        txt = 'mean: %.2f\n$\sigma$: %.2f' % (diff__r.mean(), diff__r.std()) 
+        ax.text(0.95, 0.95, txt, fontsize = 14, transform = ax.transAxes,
+                va = 'top', ha = 'right', bbox = textbox)
+        #leg = ax.legend()
+        #leg.get_frame().set_alpha(0.)
+        
         f.tight_layout()
         f.savefig('%s-%s.%s' % (K.px1.califaID, p['prop'], args.outputImgSuffix))
 
@@ -285,40 +304,35 @@ class CALIFACompare(object):
              'px1' : self.px1.EL.__getattribute__(attrib),
              'vxx' : self.vxx.EL.__getattribute__(attrib)
         }
-        return p  
+        return p
+    
+    # The Emission Lines properties are sampled by zones, so, this is why we have zoneToYX() too.
+    def zoneToYX(self, prop__z, extensive):
+        p__yx = {
+            'px1' : self.px1.zoneToYX(prop__z['px1'], extensive = extensive),
+            'vxx' : self.vxx.zoneToYX(prop__z['vxx'], extensive = extensive),
+        }
+        return p__yx
 
-    def radial(self, prop, weiProp = None):
-        HLR_pix = self.prop('HLR_pix')
+    def radialProfile(self, prop, rad_scale, weiProp = None):
         if weiProp:
             weiProp__yx = self.prop(weiProp)
             prop__r = {
                  'px1' : radialProfileWeighted(prop['px1'], weiProp__yx['px1'], 
-                                               self.Rbin__r, HLR_pix['px1'], 
+                                               self.Rbin__r, rad_scale['px1'], 
                                                self.px1.radialProfile),
                  'vxx' : radialProfileWeighted(prop['vxx'], weiProp__yx['vxx'], 
-                                               self.Rbin__r, HLR_pix['vxx'],
+                                               self.Rbin__r, rad_scale['vxx'],
                                                self.vxx.radialProfile),
             }
         else:
             prop__r = {
-                 'px1' : self.px1.radialProfile(prop['px1'], self.Rbin__r, rad_scale = HLR_pix['px1']),
-                 'vxx' : self.vxx.radialProfile(prop['vxx'], self.Rbin__r, rad_scale = HLR_pix['vxx']),
+                 'px1' : self.px1.radialProfile(prop['px1'], self.Rbin__r, 
+                                                rad_scale = rad_scale['px1']),
+                 'vxx' : self.vxx.radialProfile(prop['vxx'], self.Rbin__r, 
+                                                rad_scale = rad_scale['vxx']),
             }
         return prop__r
-
-    def radialProp(self, attrib, weiProp = None):
-        return self.radial(self.prop(attrib), weiProp)
-    
-    def propELYX(self, attrib, extensive):
-        p__z = self.propEL(attrib)
-        p__yx = {
-            'px1' : self.px1.zoneToYX(p__z['px1'], extensive = extensive),
-            'vxx' : self.vxx.zoneToYX(p__z['vxx'], extensive = extensive),
-        }
-        return p__yx
-
-    def radialPropEL(self, attrib, weiProp = None, extensive = False):
-        return self.radial(self.propELYX(attrib, extensive), weiProp)
     
 #EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
 #EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
