@@ -35,6 +35,7 @@ propStarlight = [
          weiProp = 'LobnSD__yx', log = False),
     dict(prop = 'alogZ_mass__yx', title = r'$\langle \log\ Z_\star \rangle_M$', 
          weiProp = 'McorSD__yx', log = False),
+    dict(prop = 'A_V__yx', title = r'$A_V$', weiProp = None, log = False),
     dict(prop = 'v_d__yx', title = r'$\sigma_\star$', weiProp = None, log = False),
     dict(prop = 'LobnSD__yx', title = r'$\log \mathcal{L}_\star$', weiProp = None, log = True),
     dict(prop = 'McorSD__yx', title = r'$\mathcal{M}_\star$', weiProp = None, log = False),
@@ -197,7 +198,7 @@ def plotNbyNprops(K, NRows, NCols, args):
 def plotImgRadProp(K, args):
     NCols = 4 
 
-    for i in range(0, NStarlight + NEL):
+    for i in range(0, Ntot):
 
         f, axArr = plt.subplots(1, NCols)
         f.set_size_inches(6 * NCols, 5)
@@ -221,7 +222,8 @@ def plotImgRadProp(K, args):
             p = propStarlight[i]
             prop__yx = K.prop(p['prop'])
         else:
-            k = NEL - i
+            k = i - NStarlight
+            print i, k, NStarlight, NEL, Ntot
             p = propEL[k]
             prop__z = K.propEL(p['prop'])
             prop__yx = K.zoneToYX(prop__z, extensive = p['extensive'])
