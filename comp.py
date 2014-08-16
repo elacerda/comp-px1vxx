@@ -9,7 +9,6 @@ import sys
 import argparse as ap
 import matplotlib as mpl
 from matplotlib import pyplot as plt
-from get_morfologia import get_morfologia
 import os
 
 mpl.rcParams['font.size']       = 16
@@ -176,10 +175,11 @@ def plotNbyNprops(K, NRows, NCols, args):
                     
                 ax = axArr[i, j]
                 ax.set_axis_on()
-
                 ax.set_title(p['title'])
+                if p['weiProp']:
+                    weiProp__yx = K.prop(p['weiProp'])
                 HLR_pix = K.prop('HLR_pix')
-                prop__Vr = K.radialProfile(prop__yx, rad_scale = HLR_pix, weiProp = p['weiProp'])
+                prop__Vr = K.radialProfile(prop__yx, rad_scale = HLR_pix, weiProp__yx = weiProp__yx)
                 ax.plot(K.RbinCenter__r, prop__Vr['px1'], 'b-', label = 'px1')
                 ax.plot(K.RbinCenter__r, prop__Vr['vxx'], 'r-', label = '%s' % args.vxx)
                 diff__r = prop__Vr['px1'] - prop__Vr['vxx']
@@ -187,12 +187,12 @@ def plotNbyNprops(K, NRows, NCols, args):
                 txt = 'mean: %.2f\n$\sigma$: %.2f' % (diff__r.mean(), diff__r.std()) 
                 ax.text(0.95, 0.95, txt, fontsize = 14, transform = ax.transAxes,
                         va = 'top', ha = 'right', bbox = textbox)
-                if i == NRows - 1 and j == 0:
+                if i == NRows - 1:
                     ax.set_xlabel('HLR') 
                 #leg = ax.legend()
                 #leg.get_frame().set_alpha(0.)
                 k += 1
-            
+    f.suptitle('PX1 (blue) and V20 (red) Radial Profiles', fontsize = 24)            
     f.savefig('%s.%s' % (K.px1.califaID, args.outputImgSuffix))
 
 def plotImgRadProp(K, args):
@@ -223,7 +223,6 @@ def plotImgRadProp(K, args):
             prop__yx = K.prop(p['prop'])
         else:
             k = i - NStarlight
-            print i, k, NStarlight, NEL, Ntot
             p = propEL[k]
             prop__z = K.propEL(p['prop'])
             prop__yx = K.zoneToYX(prop__z, extensive = p['extensive'])
@@ -259,7 +258,9 @@ def plotImgRadProp(K, args):
         ax.set_axis_on()
         ax.set_title('%s' % p['title'])
         HLR_pix = K.prop('HLR_pix')
-        prop__Vr = K.radialProfile(prop__yx, rad_scale = HLR_pix, weiProp = p['weiProp'])                
+        if p['weiProp']:
+            weiProp__yx = K.prop(p['weiProp'])
+        prop__Vr = K.radialProfile(prop__yx, rad_scale = HLR_pix, weiProp__yx = weiProp__yx)                
         ax.plot(K.RbinCenter__r, prop__Vr['px1'], 'b-', label = 'px1')
         ax.plot(K.RbinCenter__r, prop__Vr['vxx'], 'r-', label = '%s' % args.vxx)
         diff__r = prop__Vr['px1'] - prop__Vr['vxx']
@@ -316,9 +317,8 @@ class CALIFACompare(object):
         }
         return p__yx
 
-    def radialProfile(self, prop, rad_scale, weiProp = None):
-        if weiProp:
-            weiProp__yx = self.prop(weiProp)
+    def radialProfile(self, prop, rad_scale, weiProp__yx = None):
+        if weiProp__yx:
             prop__r = {
                  'px1' : radialProfileWeighted(prop['px1'], weiProp__yx['px1'], 
                                                self.Rbin__r, rad_scale['px1'], 
