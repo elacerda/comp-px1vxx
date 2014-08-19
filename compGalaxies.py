@@ -2,6 +2,8 @@
 #
 # Lacerda@Saco - 15/Aug/2014
 #
+# To understand how works CALIFACompare object, read comp.py.
+#
 from check_files import check_files
 import numpy as np
 from pycasso import fitsQ3DataCube
@@ -11,6 +13,11 @@ from matplotlib import pyplot as plt
 from get_morfologia import get_morfologia
 from comp import CALIFACompare
 import os
+
+mpl.rcParams['font.size']       = 16
+mpl.rcParams['axes.labelsize']  = 22
+mpl.rcParams['axes.titlesize']  = 26
+mpl.rcParams['font.family']     = 'sans-serif'
 
 debug = False
 #debug = True
@@ -55,6 +62,20 @@ Rbin__r = np.arange(RbinIni, RbinFin + RbinStep, RbinStep)
 RbinCenter__r = (Rbin__r[:-1] + Rbin__r[1:]) / 2.0
 NRbins = len(RbinCenter__r)
 
+def plotDiff(x, y, xlabel, ylabel, fileName = None): 
+    f = plt.figure()
+    f.set_size_inches(12,8)
+    ax = f.gca()
+    ax.scatter(x, y)
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    textbox = dict(boxstyle = 'round', facecolor = 'wheat', alpha = 0.)
+    txt = u'$X:\ \mathtt{mean}\ %.2f\ \ \sigma\ %.2f$\n$Y:\ \mathtt{mean}\ %.2f\ \ \sigma\ %.2f$' % (x.mean(), x.std(), y.mean(), y.std()) 
+    ax.text(0.95, 0.95, txt, fontsize = 12, transform = ax.transAxes,
+            va = 'top', ha = 'right', bbox = textbox)
+    ax.grid()
+    f.savefig(fileName)
+
 #EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
 #EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
 #EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
@@ -72,6 +93,8 @@ if __name__ == '__main__':
     A_V_vxx__rG = np.ma.zeros((NRbins, N_gals))
     McorSD_px1__rG = np.ma.zeros((NRbins, N_gals))
     McorSD_vxx__rG = np.ma.zeros((NRbins, N_gals))
+    LobnSD_px1__rG = np.ma.zeros((NRbins, N_gals))
+    LobnSD_vxx__rG = np.ma.zeros((NRbins, N_gals))
     
     for iGal in np.arange(N_gals):
         galName         = listOfPrefixes[iGal][:-1]
@@ -101,6 +124,7 @@ if __name__ == '__main__':
         K.vxx.setGeometry(pa_vxx, ba_vxx)
         
         HLR_pix = K.prop('HLR_pix')
+        
         at_flux__Vr = K.radialProfile(K.prop('at_flux__yx'), rad_scale = HLR_pix, weiProp__yx = K.prop('LobnSD__yx'))         
         at_flux_px1__rG[:, iGal] = at_flux__Vr['px1']
         at_flux_vxx__rG[:, iGal] = at_flux__Vr['vxx']
@@ -124,27 +148,82 @@ if __name__ == '__main__':
         McorSD__Vr = K.radialProfile(K.prop('McorSD__yx'), rad_scale = HLR_pix, weiProp__yx = None)
         McorSD_px1__rG[:, iGal] = McorSD__Vr['px1']
         McorSD_vxx__rG[:, iGal] = McorSD__Vr['vxx']
+
+        LobnSD__Vr = K.radialProfile(K.prop('LobnSD__yx'), rad_scale = HLR_pix, weiProp__yx = None)
+        LobnSD_px1__rG[:, iGal] = LobnSD__Vr['px1']
+        LobnSD_vxx__rG[:, iGal] = LobnSD__Vr['vxx']
         
         K.px1.close()
         K.px1.EL.close()
         K.vxx.close()
         K.vxx.EL.close()
-        
-    McorSD_diff = McorSD_px1__rG.flatten() - McorSD_vxx__rG.flatten()
-    alogZ_flux_diff = alogZ_flux_px1__rG.flatten() - alogZ_flux_vxx__rG.flatten()
-    at_flux_diff = at_flux_px1__rG.flatten() - at_flux_vxx__rG.flatten()
-    A_V_diff = A_V_px1__rG.flatten() - A_V_vxx__rG.flatten()
     
-    f = plt.figure()
-    f.set_size_inches(8,6)
-    ax = f.gca()
-    ax.scatter(np.log10(McorSD_diff), alogZ_flux_diff)
-    ax.set_xlabel(r'$\mathcal{M}_\star^{\mathtt{px1}}(R) - \mathcal{M}_\star^{\mathtt{v20}}(R)$')
-    ax.set_ylabel(r'$\langle \log\ Z_\star \rangle_L^{\mathtt{px1}} - \langle \log\ Z_\star \rangle_L^{\mathtt{v20}}$')
-    textbox = dict(boxstyle = 'round', facecolor = 'wheat', alpha = 0.)
-    txt = '$Xmean: %.2f X\sigma: %.2f\nYmean: %.2f Y\sigma: %.2f$' % (McorSD_diff.mean(), McorSD_diff.std(),
-                                                                      alogZ_flux_diff.mean(), alogZ_flux_diff.std()) 
-    ax.text(0.95, 0.95, txt, fontsize = 10, transform = ax.transAxes,
-            va = 'top', ha = 'right', bbox = textbox)
-    ax.grid()
-    f.savefig('McorSD-alogZ_flux.png')
+    delta_logMcorSD = np.log10(McorSD_px1__rG.flatten()) - np.log10(McorSD_vxx__rG.flatten())
+    delta_logLobnSD = np.log10(LobnSD_px1__rG.flatten()) - np.log10(LobnSD_vxx__rG.flatten())
+    delta_alogZ_flux = alogZ_flux_px1__rG.flatten() - alogZ_flux_vxx__rG.flatten()
+    delta_alogZ_mass = alogZ_mass_px1__rG.flatten() - alogZ_mass_vxx__rG.flatten()
+    delta_at_flux = at_flux_px1__rG.flatten() - at_flux_vxx__rG.flatten()
+    delta_at_mass = at_mass_px1__rG.flatten() - at_mass_vxx__rG.flatten()
+    delta_A_V = A_V_px1__rG.flatten() - A_V_vxx__rG.flatten()
+    
+    propPlotDelta = [
+        dict(x = delta_logMcorSD, y = delta_alogZ_mass,
+             xlabel = r'$\delta \log\mathcal{M}_\star(R)$',
+             ylabel = r'$\delta \langle \log\ Z_\star \rangle_M(R)$',
+             fileName = 'logMcorSD-alogZ_mass.png'),
+        dict(x = delta_logMcorSD, y = delta_alogZ_flux,
+             xlabel = r'$\delta \log\mathcal{M}_\star(R)$',
+             ylabel = r'$\delta \langle \log\ Z_\star \rangle_L(R)$',
+             fileName = 'logMcorSD-alogZ_flux.png'),
+        dict(x = delta_logMcorSD, y = delta_at_mass,
+             xlabel = r'$\delta \log\mathcal{M}_\star(R)$',
+             ylabel = r'$\delta \langle \log\ t_\star \rangle_M(R)$',
+             fileName = 'logMcorSD-at_mass.png'),
+        dict(x = delta_logMcorSD, y = delta_at_flux,
+             xlabel = r'$\delta \log\mathcal{M}_\star(R)$',
+             ylabel = r'$\delta \langle \log\ t_\star \rangle_L(R)$',
+             fileName = 'logMcorSD-at_flux.png'),
+        dict(x = delta_logMcorSD, y = delta_A_V,
+             xlabel = r'$\delta \log\mathcal{M}_\star(R)$',
+             ylabel = r'$\delta A_V(R)$',
+             fileName = 'logMcorSD-A_V.png'),
+        dict(x = delta_logLobnSD, y = delta_alogZ_mass,
+             xlabel = r'$\delta \log\mathcal{L}_\star(R)$',
+             ylabel = r'$\delta \langle \log\ Z_\star \rangle_M(R)$',
+             fileName = 'logLobnSD-alogZ_mass.png'),
+        dict(x = delta_logLobnSD, y = delta_alogZ_flux,
+             xlabel = r'$\delta \log\mathcal{L}_\star(R)$',
+             ylabel = r'$\delta \langle \log\ Z_\star \rangle_L(R)$',
+             fileName = 'logLobnSD-alogZ_flux.png'),
+        dict(x = delta_logLobnSD, y = delta_at_mass,
+             xlabel = r'$\delta \log\mathcal{L}_\star(R)$',
+             ylabel = r'$\delta \langle \log\ t_\star \rangle_M(R)$',
+             fileName = 'logLobnSD-at_mass.png'),
+        dict(x = delta_logLobnSD, y = delta_at_flux,
+             xlabel = r'$\delta \log\mathcal{L}_\star(R)$',
+             ylabel = r'$\delta \langle \log\ t_\star \rangle_L(R)$',
+             fileName = 'logLobnSD-at_flux.png'),
+        dict(x = delta_logLobnSD, y = delta_A_V,
+             xlabel = r'$\delta \log\mathcal{L}_\star(R)$',
+             ylabel = r'$\delta A_V(R)$',
+             fileName = 'logLobnSD-A_V.png'),
+        dict(x = delta_logLobnSD, y = delta_logMcorSD,
+             xlabel = r'$\delta \log\mathcal{L}_\star(R)$',
+             ylabel = r'$\delta \log\mathcal{M}_\star(R)$',
+             fileName = 'logLobnSD-logMcorSD.png'),
+        dict(x = delta_at_flux, y = delta_alogZ_flux,
+             xlabel = r'$\delta \langle \log\ t_\star \rangle_L(R)$',
+             ylabel = r'$\delta \langle \log\ Z_\star \rangle_L(R)$',
+             fileName = 'at_flux-alogZ_flux.png'),
+        dict(x = delta_at_mass, y = delta_alogZ_mass,
+             xlabel = r'$\delta \langle \log\ t_\star \rangle_M(R)$',
+             ylabel = r'$\delta \langle \log\ Z_\star \rangle_M(R)$',
+             fileName = 'at_mass-alogZ_mass.png'),
+        dict(x = delta_at_flux, y = delta_A_V,
+             xlabel = r'$\delta \langle \log\ t_\star \rangle_L(R)$',
+             ylabel = r'$\delta A_V(R)$',
+             fileName = 'at_flux-A_V.png'),
+    ]
+    
+    for p in propPlotDelta:
+        plotDiff(p['x'], p['y'], p['xlabel'], p['ylabel'], p['fileName'])
