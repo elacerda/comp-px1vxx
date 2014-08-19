@@ -134,6 +134,14 @@ def DrawHLRCircleInSDSSImage(ax, HLR_pix, pa, ba):
     e2 = Ellipse(center, height=4*a*b_a, width=4*a, angle=theta, fill=False, color='white',lw=2,ls='dotted')
     ax.add_artist(e1)
     ax.add_artist(e2)
+    
+def DrawHLRCircle(ax, K, color='white', lw=1.5):
+    from matplotlib.patches import Ellipse
+    center , a , b_a , theta = np.array([ K.x0 , K.y0]) , K.HLR_pix , K.ba ,  K.pa*180/np.pi 
+    e1 = Ellipse(center, height=2*a*b_a, width=2*a, angle=theta, fill=False, color=color,lw=lw,ls='dotted')
+    e2 = Ellipse(center, height=4*a*b_a, width=4*a, angle=theta, fill=False, color=color,lw=lw,ls='dotted')
+    ax.add_artist(e1)
+    ax.add_artist(e2)
 
 def plotNbyNprops(K, NRows, NCols, args):
     f, axArr = plt.subplots(NRows, NCols)
@@ -245,6 +253,7 @@ def plotImgRadProp(K, args):
         im = ax.imshow(prop__yx['px1'], origin = 'lower', vmax = vmax, vmin = vmin)
         pa_px1, ba_px1 = K.px1.getEllipseParams()
         ax.set_title('%s px1' % p['title'])
+        DrawHLRCircle(ax, K)
         f.colorbar(ax = ax, mappable = im)
 
         ax = axArr[2]
@@ -252,6 +261,7 @@ def plotImgRadProp(K, args):
         im = ax.imshow(prop__yx['vxx'], origin = 'lower', vmax = vmax, vmin = vmin)
         pa_vxx, ba_vxx = K.vxx.getEllipseParams()
         ax.set_title('%s %s' % (p['title'], args.vxx))
+        DrawHLRCircle(ax, K)
         f.colorbar(ax = ax, mappable = im)
         
         ax = axArr[3]
@@ -275,6 +285,11 @@ def plotImgRadProp(K, args):
         f.savefig('%s-%s.%s' % (K.px1.califaID, p['prop'], args.outputImgSuffix))
 
 class CALIFACompare(object):
+    '''
+    This object is build to manage two CALIFA Super FITS data cubes at same time. 
+    One with all spectra sampled pixel by pixel, and another using Voronoi zones.
+    The return of all properties is stored in a dictionary with px1 and vxx keys.
+    '''
     def __init__(self, px1File = None, vxxFile = None, px1ELFile = None, vxxELFile = None):
         self.px1 = None
         self.vxx = None
