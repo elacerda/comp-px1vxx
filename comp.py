@@ -253,7 +253,7 @@ def plotImgRadProp(K, args):
         im = ax.imshow(prop__yx['px1'], origin = 'lower', vmax = vmax, vmin = vmin)
         pa_px1, ba_px1 = K.px1.getEllipseParams()
         ax.set_title('%s px1' % p['title'])
-        DrawHLRCircle(ax, K)
+        DrawHLRCircle(ax, K.px1)
         f.colorbar(ax = ax, mappable = im)
 
         ax = axArr[2]
@@ -261,7 +261,7 @@ def plotImgRadProp(K, args):
         im = ax.imshow(prop__yx['vxx'], origin = 'lower', vmax = vmax, vmin = vmin)
         pa_vxx, ba_vxx = K.vxx.getEllipseParams()
         ax.set_title('%s %s' % (p['title'], args.vxx))
-        DrawHLRCircle(ax, K)
+        DrawHLRCircle(ax, K.vxx)
         f.colorbar(ax = ax, mappable = im)
         
         ax = axArr[3]
